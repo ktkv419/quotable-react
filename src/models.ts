@@ -4,33 +4,32 @@ export interface IQuote {
   author: string
   authorSlug: string
   tags: string[]
+  isFavorited: boolean
 }
 
 export interface IQuotes {
-  feedData: {
-    error: Error | any
-    quotes?:
-      | {
-          count?: number
-          results: IQuote[]
-          page?: number
-          totalCount?: number
-          totalPages?: number
-        }
-      | undefined
-  }
+  error: Error | any
+  quotes?:
+    | {
+        count?: number
+        results: IQuote[]
+        page?: number
+        totalCount?: number
+        totalPages?: number
+      }
+    | undefined
 }
 
-export interface Actions {
-  actions?: {
-    onCategorySelect: (e: React.MouseEventHandler<HTMLButtonElement>) => void
-    onNextPage: React.MouseEventHandler<HTMLButtonElement>
-    onPrevPage: React.MouseEventHandler<HTMLButtonElement>
-  }
+export interface IFeedActions {
+  onNextPage: React.MouseEventHandler<HTMLButtonElement>
+  onPrevPage: React.MouseEventHandler<HTMLButtonElement>
 }
 
 export interface IQuoteActions {
   onCategorySelect: (e: React.MouseEventHandler<HTMLButtonElement>) => void
+  onAuthorSelect: (e: React.MouseEventHandler<HTMLButtonElement>) => void
+  addToFavorites: (id: string) => void
+  removeFromFavorites: (id: string) => void
 }
 
 export enum SearchType {

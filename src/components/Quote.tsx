@@ -1,48 +1,52 @@
-import React, { useRef } from 'react'
 import { IQuote, IQuoteActions } from '../models'
 
-interface QuoteProps {
-  quote: IQuote
+interface IQuoteProps {
+  quoteData: IQuote
+  quoteActions: IQuoteActions
 }
 
-export function Quote(props: QuoteProps & IQuoteActions): JSX.Element {
-  const quoteRef = useRef<HTMLDivElement>()
-
-  function addToFavorite(e: React.MutableRefObject<HTMLDivElement> | null) {
-    if (e?.current) {
-      const { id } = e.current
-      let favoriteQuotesStorage = localStorage.getItem('favoriteQuotes')
-      if (!favoriteQuotesStorage) {
-        localStorage.setItem('favoriteQuotes', '[]')
-        favoriteQuotesStorage = '[]'
-      }
-      const favoriteQuotes = JSON.parse(favoriteQuotesStorage) as string[]
-      favoriteQuotes.push(id)
-      localStorage.setItem('favoriteQuotes', JSON.stringify(favoriteQuotes))
-    }
-  }
-
+export function Quote({ quoteData, quoteActions }: IQuoteProps): JSX.Element {
   return (
-    <div className="quote" ref={quoteRef} id={props.quote._id}>
-      <p className="quote__author">{props.quote.content}</p>
-      <h4 className="quote__text">{props.quote.author}</h4>
-      {props.quote.tags.map((tag) => (
+    <div className="quote" id={quoteData._id}>
+      <p className="quote__author">{quoteData.content}</p>
+      <h4 className="quote__text">{quoteData.author}</h4>
+      <a
+        href="#"
+        className="quote__author"
+        onClick={(e) => {
+          e.preventDefault()
+          quoteActions.onAuthorSelect(e)
+        }}
+      >
+        {quoteData.author}
+      </a>
+      {quoteData.tags.map((tag) => (
         <button
           onClick={(e) => {
-            props.onCategorySelect(e)
+            quoteActions.onCategorySelect(e)
           }}
         >
           {tag}
         </button>
         // <a href={`#${tag}`}>{tag}</a>
       ))}
-      <button
-        onClick={() => {
-          addToFavorite(quoteRef)
-        }}
-      >
-        Like
-      </button>
+      {quoteData.isFavorited ? (
+        <button
+          onClick={() => {
+            quoteActions.removeFromFavorites(quoteData._id)
+          }}
+        >
+          Dislike
+        </button>
+      ) : (
+        <button
+          onClick={() => {
+            quoteActions.addToFavorites(quoteData._id)
+          }}
+        >
+          Like
+        </button>
+      )}
     </div>
   )
 }

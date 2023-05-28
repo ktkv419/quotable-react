@@ -1,89 +1,133 @@
-import React, { FormHTMLAttributes, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Feed from './components/Feed'
 import { IQuotes } from './models'
 import { fetchQuotes as fetchQuotes } from './api/fetchQuotes'
 import Loading from './components/Loading'
 
 interface IQuery {
-  query: string
+  query: string | string[]
   type: string
-  page: number
+  page?: number
 }
 
 function App() {
-  const [quotes, setQuotes] = useState<IQuotes | null>(null)
+  const [quoteData, setQuoteData] = useState<IQuotes | null>(null)
   const [inputSearch, setInputSearch] = useState('')
-  const [searchQuery, setSearchQuery] = useState<IQuery[]>([])
-  const [curPage, setCurPage] = useState(1)
-  const [searchTerm, setSearchTerm] = useState<IQuery>({
-    query: 'random',
-    type: 'category',
-    page: curPage,
-  })
-  const [loading, setLoading] = useState(false)
-  // const [searchQuery, setSearchQuery] = useState([])
 
-  const actions = {
+  const [searchQuery, setSearchQuery] = useState<IQuery[]>([])
+
+  const [loading, setLoading] = useState(true)
+
+  if (window.localStorage.getItem('favoriteQuotes') === null)
+    window.localStorage.setItem('favoriteQuotes', '[]')
+
+  const [favoriteQuotes, setFavoriteQuotes] = useState<Array<string>>(
+    JSON.parse(window.localStorage.getItem('favoriteQuotes')!)
+  )
+
+  const quoteActions = {
     onCategorySelect: (e: React.ChangeEvent<HTMLButtonElement>) => {
-      setSearchTerm({
-        query: e.target.innerHTML,
-        type: 'category',
-        page: curPage,
-      })
+      setSearchQuery([
+        ...searchQuery,
+        {
+          query: e.target.innerHTML,
+          type: 'category',
+          page: 1,
+        },
+      ])
     },
+
+    onAuthorSelect: (e) => {
+      setSearchQuery([
+        ...searchQuery,
+        {
+          query: e.target.innerHTML,
+          type: 'author',
+          page: 1,
+        },
+      ])
+    },
+
+    addToFavorites: (id: string) => {
+      setFavoriteQuotes([...favoriteQuotes, id])
+    },
+
+    removeFromFavorites: (id: string) => {
+      setFavoriteQuotes(favoriteQuotes.filter((quoteID) => id !== quoteID))
+    },
+  }
+
+  const feedActions = {
     onNextPage: () => {
       if (
-        quotes?.feedData.quotes?.totalPages &&
-        quotes.feedData.quotes.totalPages >= curPage + 1
+        quoteData?.quotes?.totalPages &&
+        quoteData.quotes.totalPages >=
+          searchQuery[searchQuery.length - 1].page! + 1
       ) {
-        setCurPage((curPage) => (curPage += 1))
+        setSearchQuery([
+          ...searchQuery,
+          {
+            query: searchQuery[searchQuery.length - 1].query,
+            type: searchQuery[searchQuery.length - 1].type,
+            page: searchQuery[searchQuery.length - 1].page! + 1,
+          },
+        ])
       }
     },
     onPrevPage: () => {
-      if (curPage - 1 > 0) setCurPage((curPage) => (curPage -= 1))
+      if (
+        quoteData?.quotes?.totalPages &&
+        searchQuery[searchQuery.length - 1].page! - 1 > 0
+      )
+        setSearchQuery([
+          ...searchQuery,
+          {
+            query: searchQuery[searchQuery.length - 1].query,
+            type: searchQuery[searchQuery.length - 1].type,
+            page: searchQuery[searchQuery.length - 1].page! - 1,
+          },
+        ])
     },
   }
 
   useEffect(() => {
-    if (!loading) {
-      setLoading(true)
-      const fetchData = async () => {
-        setSearchQuery((searchQuery) => [...searchQuery, searchTerm])
-        setQuotes(await fetchQuotes(searchTerm))
-        setLoading(false)
-      }
-      fetchData()
+    window.localStorage.setItem(
+      'favoriteQuotes',
+      JSON.stringify(favoriteQuotes)
+    )
+  }, [favoriteQuotes])
+
+  useEffect(() => {
+    const fetchInitialQuotes = async () => {
+      setQuoteData(await fetchQuotes({ query: 'random', type: 'category' }))
+      setLoading(false)
     }
+    fetchInitialQuotes()
   }, [])
 
   useEffect(() => {
+    // console.log(searchQuery)
     if (!loading) {
       setLoading(true)
+      console.log('fetched')
       const fetchData = async () => {
-        setSearchQuery((searchQuery) => [...searchQuery, searchTerm])
-        setQuotes(await fetchQuotes(searchTerm))
-        setCurPage(1)
+        setQuoteData(await fetchQuotes(searchQuery[searchQuery.length - 1]))
         setLoading(false)
       }
       fetchData()
     }
   }, [searchQuery])
 
-  // useEffect(() => {
-  //   if (!loading) {
-  //     setLoading(true)
-  //     const fetchData = async () => {
-  //       console.log(searchQuery[searchQuery.length - 1])
-  //       setQuotes(await fetchQuotes(searchQuery[searchQuery.length - 1]))
-  //       setLoading(false)
-  //     }
-  //     fetchData()
-  //   }
-  // }, [curPage])
-
   const submitSearchHandler = (e) => {
     e.preventDefault()
-    setSearchTerm(inputSearch)
+    setSearchQuery([
+      ...searchQuery,
+      {
+        query: inputSearch,
+        type: 'search',
+        page: 1,
+      },
+    ])
   }
 
   return (
@@ -101,13 +145,36 @@ function App() {
         <button
           className="preset__item"
           onClick={() => {
-            setSearchTerm({ query: 'random', type: 'category' })
+            setSearchQuery([
+              ...searchQuery,
+              { query: 'random', type: 'category' },
+            ])
           }}
         >
           Random
         </button>
+        <button
+          className="preset__item"
+          onClick={() => {
+            setSearchQuery([
+              ...searchQuery,
+              { query: favoriteQuotes, type: 'favorites' },
+            ])
+          }}
+        >
+          Favorites
+        </button>
       </div>
-      {quotes === null ? <Loading /> : <Feed {...quotes} actions={actions} />}
+      {loading ? (
+        <Loading />
+      ) : (
+        <Feed
+          quoteList={quoteData}
+          feedActions={feedActions}
+          quoteActions={quoteActions}
+          favoriteQuotes={favoriteQuotes}
+        />
+      )}
     </>
   )
 }
