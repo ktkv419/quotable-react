@@ -26,8 +26,8 @@ export interface IFeedActions {
 }
 
 export interface IQuoteActions {
-  onCategorySelect: (e: React.MouseEventHandler<HTMLButtonElement>) => void
-  onAuthorSelect: (e: React.MouseEventHandler<HTMLButtonElement>) => void
+  onCategorySelect: (category: string) => void
+  onAuthorSelect: (author: string) => void
   addToFavorites: (id: string) => void
   removeFromFavorites: (id: string) => void
 }

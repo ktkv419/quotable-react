@@ -1,0 +1,45 @@
+.feed {
+  margin: 3rem 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.feed__title {
+  font-size: 2.5rem;
+  text-align: center;
+  grid-column: span 2;
+}
+
+.feed__controls {
+  grid-column: span 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.feed__pages {
+  font-size: 2rem;
+  margin: 0 2rem;
+}
+
+.feed__btn {
+  background-color: transparent;
+  border: none;
+  font-size: 3rem;
+  cursor: pointer;
+}
+
+@media all and (max-width: 56.25em) {
+  .feed {
+    grid-template-columns: 1fr;
+  }
+
+  .feed__title {
+    grid-column: span 1;
+  }
+
+  .feed__controls {
+    grid-column: span 1;
+  }
+}

@@ -1,0 +1,43 @@
+.presets {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 2rem;
+}
+
+.presets__item {
+  background-color: var(--color-accent-1);
+  border: none;
+  border-radius: 1rem;
+  padding: 0.5rem 1.5rem;
+  cursor: pointer;
+  color: white;
+  font-family: var(--font);
+  grid-column: span 3;
+  width: 50%;
+  align-self: center;
+  justify-self: center;
+}
+
+.presets__categories {
+  width: 100%;
+  display: flex;
+  gap: 1.5rem;
+  grid-column: span 6;
+}
+
+.presets__category {
+  flex-grow: 1;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+@media all and (max-width: 56.25em) {
+  .presets__item {
+    width: 100%;
+  }
+
+  .presets__categories {
+    display: none;
+  }
+}

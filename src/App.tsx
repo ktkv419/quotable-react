@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react'
-import Feed from './components/Feed'
+import Feed from './components/Feed/Feed'
 import { IQuotes } from './models'
-import { fetchQuotes as fetchQuotes } from './api/fetchQuotes'
-import Loading from './components/Loading'
+import { fetchQuotes } from './services/fetchQuotes'
+import Loading from './components/Loading/Loading'
+import Error from './components/Error/Error'
+import Search from './components/Search/Search'
+import Presets from './components/Presets/Presets'
+import './App.css'
 
-interface IQuery {
+export interface IQuery {
   query: string | string[]
   type: string
   page?: number
@@ -12,7 +16,6 @@ interface IQuery {
 
 function App() {
   const [quoteData, setQuoteData] = useState<IQuotes | null>(null)
-  const [inputSearch, setInputSearch] = useState('')
 
   const [searchQuery, setSearchQuery] = useState<IQuery[]>([])
 
@@ -26,22 +29,22 @@ function App() {
   )
 
   const quoteActions = {
-    onCategorySelect: (e: React.ChangeEvent<HTMLButtonElement>) => {
+    onCategorySelect: (category: string) => {
       setSearchQuery([
         ...searchQuery,
         {
-          query: e.target.innerHTML,
+          query: category,
           type: 'category',
           page: 1,
         },
       ])
     },
 
-    onAuthorSelect: (e) => {
+    onAuthorSelect: (author: string) => {
       setSearchQuery([
         ...searchQuery,
         {
-          query: e.target.innerHTML,
+          query: author,
           type: 'author',
           page: 1,
         },
@@ -106,7 +109,6 @@ function App() {
   }, [])
 
   useEffect(() => {
-    // console.log(searchQuery)
     if (!loading) {
       setLoading(true)
       console.log('fetched')
@@ -118,64 +120,28 @@ function App() {
     }
   }, [searchQuery])
 
-  const submitSearchHandler = (e) => {
-    e.preventDefault()
-    setSearchQuery([
-      ...searchQuery,
-      {
-        query: inputSearch,
-        type: 'search',
-        page: 1,
-      },
-    ])
-  }
-
   return (
-    <>
-      <form className="search" onSubmit={submitSearchHandler}>
-        <input
-          type="text"
-          className="quote__input"
-          value={inputSearch}
-          onChange={(e) => setInputSearch(e.target.value)}
-        />
-        <button formAction="submit">Search</button>
-      </form>
-      <div className="presets">
-        <button
-          className="preset__item"
-          onClick={() => {
-            setSearchQuery([
-              ...searchQuery,
-              { query: 'random', type: 'category' },
-            ])
-          }}
-        >
-          Random
-        </button>
-        <button
-          className="preset__item"
-          onClick={() => {
-            setSearchQuery([
-              ...searchQuery,
-              { query: favoriteQuotes, type: 'favorites' },
-            ])
-          }}
-        >
-          Favorites
-        </button>
-      </div>
+    <div className="container">
+      <Search setSearchQuery={setSearchQuery} searchQuery={searchQuery} />
+      <Presets
+        setSearchQuery={setSearchQuery}
+        searchQuery={searchQuery}
+        favoriteQuotes={favoriteQuotes}
+      />
       {loading ? (
         <Loading />
-      ) : (
+      ) : quoteData ? (
         <Feed
-          quoteList={quoteData}
+          quoteData={quoteData}
           feedActions={feedActions}
           quoteActions={quoteActions}
           favoriteQuotes={favoriteQuotes}
+          searchQuery={searchQuery}
         />
+      ) : (
+        <Error message={'Something went horribly wrong...'} />
       )}
-    </>
+    </div>
   )
 }
 
